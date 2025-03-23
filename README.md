@@ -1,2 +1,2 @@
-# codyssey
-깃허브와 Codyssey 연동하기 위한 repository
+# 동양미래대학교 codyssey
+
