@@ -42,14 +42,17 @@ class DummySensor:
         with open("sensor_log.txt", "a", encoding="utf-8") as f:
             f.write(log_entry)
 
-        # 출력용으로도 반환
-        return data_str
+        return self.env_values
     
 
 def main():
     ds = DummySensor()
     ds.set_env()
-    print(ds.get_env())
+    env_data = ds.get_env()
+
+    print("Current sensor data:")
+    for key, value in env_data.items():
+        print(f"{key}: {value}")
 
 
 if __name__ == "__main__":
