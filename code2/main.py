@@ -44,7 +44,6 @@ class Inventory:
 
     #인화성 기준으로 내림차순 정렬
     def sort_by_flammability(self):
-
         self.items.sort(key=lambda item: item.flammability, reverse=True)
 
     #인화성 지수가 threshold 이상인 항목을 필터링
