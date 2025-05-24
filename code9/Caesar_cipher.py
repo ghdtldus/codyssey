@@ -1,0 +1,56 @@
+import os
+
+# password.txt 파일에서 암호문 읽기
+def read_password_text():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(current_dir, "password.txt")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.readline().strip()  # 한 줄만 읽음
+    except FileNotFoundError:
+        print("password.txt 파일을 찾을 수 없습니다.")
+        return None
+
+# 카이사르 복호화 함수 - 알파벳만 처리
+def caesar_cipher_decode(target_text):
+    results = []
+
+    # shift 자릿수는 알파벳 수(0~25)
+    for shift in range(26):
+        decoded = ""
+        for char in target_text:
+            if char.isalpha():
+                base = ord('A') if char.isupper() else ord('a')
+                decoded += chr((ord(char) - base - shift) % 26 + base)
+            else:
+                decoded += char  # 공백, 기호 등은 그대로
+        results.append((shift, decoded))
+
+    print(f"\n암호문: {target_text}")
+    print("가능한 복호화 결과 (shift 0~25):\n")
+    for shift, result in results:
+        print(f"[shift {shift:2}] {result}")
+
+    while True:
+        try:
+            selected = int(input("\n맞는 shift 번호를 입력하세요 (0~25): "))
+            if 0 <= selected <= 25:
+                break
+            else:
+                print("0~25 사이의 숫자를 입력해주세요.")
+        except ValueError:
+            print("숫자를 입력해주세요.")
+
+    final = results[selected][1]
+
+    try:
+        with open("result.txt", "w", encoding="utf-8") as f:
+            f.write(f"[shift {selected}] {final}\n")
+        print("\n복호화 결과가 result.txt에 저장되었습니다.")
+    except Exception as e:
+        print(f"result.txt 저장 중 오류 발생: {e}")
+
+if __name__ == "__main__":
+    text = read_password_text()
+    if text:
+        caesar_cipher_decode(text)
