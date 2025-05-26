@@ -2,67 +2,69 @@ import os
 import wave
 import datetime
 import threading
-import msvcrt  
+import msvcrt
 import pyaudio
 
+def prepare_directory(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
-class VoiceRecorder:
-    def __init__(self, folder='records'):
-        self.folder = folder
-        self.channels = 1
-        self.rate = 44100
-        self.chunk = 1024
-        self.format = pyaudio.paInt16
-        self.frames = []
-        self.is_recording = True
-        self._prepare_directory()
 
-    def _prepare_directory(self):
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
+def get_timestamp_filename(folder):
+    now = datetime.datetime.now()
+    timestamp = now.strftime('%Y%m%d-%H%M%S')
+    return os.path.join(folder, f'{timestamp}.wav')
 
-    def _get_timestamp_filename(self):
-        now = datetime.datetime.now()
-        timestamp = now.strftime('%Y%m%d-%H%M%S')
-        return os.path.join(self.folder, f'{timestamp}.wav')
 
-    def record(self):
-        audio = pyaudio.PyAudio()
-        stream = audio.open(format=self.format,
-                            channels=self.channels,
-                            rate=self.rate,
-                            input=True,
-                            frames_per_buffer=self.chunk)
+def save_to_file(path, frames, channels, rate, format):
+    with wave.open(path, 'wb') as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(pyaudio.PyAudio().get_sample_size(format))
+        wf.setframerate(rate)
+        wf.writeframes(b''.join(frames))
 
-        print('녹음 중... (아무 키나 누르면 종료)')
 
-        def listen_keyboard():
-            msvcrt.getch()
-            self.is_recording = False
+def record_audio():
+    folder = 'records'
+    prepare_directory(folder)
 
-        threading.Thread(target=listen_keyboard, daemon=True).start()
+    channels = 1
+    rate = 44100
+    chunk = 1024
+    format = pyaudio.paInt16
+    frames = []
+    is_recording = True
 
-        while self.is_recording:
-            data = stream.read(self.chunk)
-            self.frames.append(data)
+    def listen_keyboard():
+        nonlocal is_recording
+        msvcrt.getch()
+        is_recording = False
 
-        print('녹음 종료.')
-        stream.stop_stream()
-        stream.close()
-        audio.terminate()
+    threading.Thread(target=listen_keyboard, daemon=True).start()
 
-        path = self._get_timestamp_filename()
-        self._save_to_file(path, self.frames)
-        print(f'파일 저장 완료: {path}')
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=format,
+                        channels=channels,
+                        rate=rate,
+                        input=True,
+                        frames_per_buffer=chunk)
 
-    def _save_to_file(self, path, frames):
-        with wave.open(path, 'wb') as wf:
-            wf.setnchannels(self.channels)
-            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(self.format))
-            wf.setframerate(self.rate)
-            wf.writeframes(b''.join(frames))
+    print('녹음 중... (아무 키나 누르면 종료)')
+
+    while is_recording:
+        data = stream.read(chunk)
+        frames.append(data)
+
+    print('녹음 종료.')
+
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
+    path = get_timestamp_filename(folder)
+    save_to_file(path, frames, channels, rate, format)
+    print(f'파일 저장 완료: {path}')
 
 
 if __name__ == '__main__':
-    recorder = VoiceRecorder()
-    recorder.record()
+    record_audio()
