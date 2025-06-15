@@ -14,13 +14,15 @@ class MySQLHelper:
         )
         # 쿼리 실행을 위한 커서 생성
         self.cursor = self.conn.cursor()
+        # DB와 테이블을 초기화
         self.init_database()
 
     def init_database(self):
-        # 데이터베이스가 없으면 생성
+        # mars라는 이름의 DB가 없으면 생성
         self.cursor.execute('CREATE DATABASE IF NOT EXISTS mars')
+        # mars DB를 사용하도록 선택
         self.cursor.execute('USE mars')
-        # 테이블이 없으면 생성
+        # mars_weather 테이블이 없으면 생성
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS mars_weather (
                 weather_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -32,8 +34,10 @@ class MySQLHelper:
 
     # 날씨 데이터를 삽입하는 함수
     def insert_weather(self, mars_date, temp, storm):
+		    # INSERT SQL 문 (3개 값을 삽입)
         sql = (
             'INSERT INTO mars_weather (mars_date, temp, storm) '
+            # SQL에서 값을 넣을 자리를 미리 표시해두는 방식
             'VALUES (%s, %s, %s)'
         )
         # 실제 삽입할 값 지정
@@ -53,7 +57,7 @@ class MySQLHelper:
 # CSV 파일을 읽어 리스트로 반환
 def read_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as f:
-        # CSV 헤더를 기준으로 딕셔너리 형태로 읽음
+        # 첫 줄을 컬럼명으로 간주하고, 각 행을 딕셔너리로 읽음
         reader = csv.DictReader(f)
         # 리스트로 변환하여 반환
         return list(reader)
